@@ -30,9 +30,8 @@
       box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
     }
 
-    button:hover {
+    button:active {
       background: #ffe6f0;
-      transform: scale(1.1);
     }
 
     /* Output section */
@@ -53,15 +52,9 @@
     /* Output text styling */
     .output p {
       margin: 10px 0;
-      font-size: 16px;
-      font-weight: bold;
-    }
-
-    /* Category headings */
-    .output p:first-child {
-      color: hotpink;
       font-size: 18px;
-      text-transform: uppercase;
+      font-weight: bold;
+      color: hotpink;
     }
   </style>
 </head>
@@ -82,22 +75,24 @@
       return array[Math.floor(Math.random() * array.length)];
     }
 
-    // Function to handle the roll button click
+    // Handle the roll button click
     document.getElementById("rollButton").addEventListener("click", () => {
       const outputDiv = document.getElementById("output");
       outputDiv.innerHTML = ""; // Clear previous output
 
-      // Generate and display random items for each category
-      for (const [category, items] of Object.entries(categories)) {
-        const categoryElement = document.createElement("p");
-        categoryElement.textContent = category;
+      // Flash animation for button
+      const button = document.getElementById("rollButton");
+      button.style.background = "#ffe6f0";
+      setTimeout(() => {
+        button.style.background = "white";
+      }, 200); // Revert background after 200ms
 
+      // Generate and display random items (only items)
+      Object.values(categories).forEach(items => {
         const itemElement = document.createElement("p");
         itemElement.textContent = getRandomItem(items);
-
-        outputDiv.appendChild(categoryElement);
         outputDiv.appendChild(itemElement);
-      }
+      });
     });
   </script>
 </body>
