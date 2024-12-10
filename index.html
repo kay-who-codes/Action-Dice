@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Random Generator</title>
+  <title>🎲 Action Dice</title>
   <style>
     /* General body styling */
     body {
@@ -14,13 +14,13 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      background: linear-gradient(to bottom, #f9f9f9, #e3f2fd);
+      background: linear-gradient(to bottom, #d0f6ff, #82a2df);
     }
 
     /* Button styling */
     button {
       background: white;
-      color: hotpink;
+      color: #324d82;
       border: 2px solid black;
       border-radius: 20px;
       padding: 15px 30px;
@@ -54,19 +54,19 @@
       margin: 10px 0;
       font-size: 18px;
       font-weight: bold;
-      color: hotpink;
+      color: #324d82;
     }
   </style>
 </head>
 <body>
-  <button onclick="generateRandom()">Roll</button>
+  <button onclick="generateRandom()">More</button>
   <div class="output" id="output"></div>
 
   <script>
         const categories = {
-            "Category 1": ["In a manner of your choice", "Slowly", "Quickly", "Softly", "Roughly", "Intimately"],
-            "Category 2": ["Perform an action of your choice", "Kiss", "Lick", "Massage", "Suck", "Finger", "Grope"],
-            "Category 3": ["To an area to the body of your choice", "Legs", "Feet", "Hips & Waist", "Back", "Chest", "Genitals", "Neck", "Arms", "Finger"],
+            "Category 1": ["In a manner of your choice", "Slowly", "Quickly", "Softly", "Roughly"],
+            "Category 2": ["Perform an action of your choice to", "Kick", "Slap", "Punch", "Elbow", "Knee"],
+            "Category 3": ["An area to the body of your choice", "Legs", "Hips & Waist", "Back", "Chest", "Genitals", "Neck", "Arms"],
             "Category 4": ["For as long as you like", "For 15 Seconds", "For 30 seconds", "For 40 seconds", "For 50 seconds", "For 1 minute", "For 90 seconds", "For 2 minutes"]
         };
 
