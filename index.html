@@ -56,31 +56,108 @@
       font-weight: bold;
       color: #324d82;
     }
+
+    /* Timer button styling */
+    .timer-button {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #324d82;
+      padding: 10px 20px;
+      background: #fff;
+      border: 2px solid #324d82;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .timer-button:hover {
+      background: #f0f8ff;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <button onclick="generateRandom()">More</button>
+  <button onclick="generateRandom()">Roll</button>
   <div class="output" id="output"></div>
+  <button class="timer-button hidden" id="timer-button" onclick="startTimer()"></button>
 
   <script>
-        const categories = {
-            "Category 1": ["In a manner of your choice", "Slowly", "Quickly", "Softly", "Roughly"],
-            "Category 2": ["Perform an action of your choice to", "Blow at", "Stare at", "Do something unexpected to", "Touch", "Do something exciting to"],
-            "Category 3": ["An area to the body of your choice", "Legs", "Hips & Waist", "Back", "Chest", "Neck", "Arms"],
-            "Category 4": ["For as long as you like", "For 15 Seconds", "For 30 seconds", "For 40 seconds", "For 50 seconds", "For 1 minute", "For 90 seconds", "For 2 minutes"]
-        };
+    const categories = {
+      "Category 1": ["In a manner of your choice", "Slowly", "Quickly", "Softly", "Roughly"],
+      "Category 2": ["Perform an action of your choice to", "Blow at", "Stare at", "Do something unexpected to", "Touch", "Do something exciting to"],
+      "Category 3": ["An area to the body of your choice", "Legs", "Hips & Waist", "Back", "Chest", "Neck", "Arms"],
+      "Category 4": ["For as long as you like", "For 15 Seconds", "For 30 seconds", "For 40 seconds", "For 50 seconds", "For 1 minute", "For 90 seconds", "For 2 minutes"]
+    };
 
-        function generateRandom() {
+    let timerInterval; // To store the timer interval
+    let countdownTime; // To store the countdown time in seconds
+
+    function generateRandom() {
       const outputDiv = document.getElementById("output");
+      const timerButton = document.getElementById("timer-button");
+
       outputDiv.innerHTML = ""; // Clear previous content
+      clearInterval(timerInterval); // Clear any previous timer
+      timerInterval = null; // Reset the timer interval reference
+      timerButton.textContent = ""; // Clear timer display
+      timerButton.classList.add("hidden"); // Hide the timer button initially
 
       // Randomly select and display one value from each category
-      Object.values(categories).forEach(values => {
+      Object.values(categories).forEach((values, index) => {
         const item = values[Math.floor(Math.random() * values.length)];
         const itemElement = document.createElement("p");
         itemElement.textContent = item;
         outputDiv.appendChild(itemElement);
+
+        // Set countdown time for the timer
+        if (index === 3) {
+          countdownTime = parseTimeToSeconds(item);
+          if (countdownTime > 0) {
+            timerButton.textContent = `Start Timer: ${item}`;
+            timerButton.classList.remove("hidden");
+          }
+        }
       });
+    }
+
+    function parseTimeToSeconds(timeString) {
+      const match = timeString.match(/(\d+)\s*(seconds|minute|minutes)/i);
+      if (!match) return 0;
+
+      const value = parseInt(match[1]);
+      if (timeString.includes("minute")) return value * 60;
+      return value;
+    }
+
+    function startTimer() {
+      const timerButton = document.getElementById("timer-button");
+
+      if (timerInterval) return; // Prevent restarting the timer
+
+      function updateTimer() {
+        const minutes = Math.floor(countdownTime / 60);
+        const seconds = countdownTime % 60;
+        timerButton.textContent = `Time Remaining: ${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+        countdownTime--;
+
+        if (countdownTime < 0) {
+          clearInterval(timerInterval);
+          playSound();
+          timerButton.textContent = "Time's up!";
+        }
+      }
+
+      updateTimer(); // Display the initial time
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function playSound() {
+      const audio = new Audio("timer.mp3");
+      audio.play();
     }
   </script>
 </body>
