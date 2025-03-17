@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌶️ Spicy Dice</title>
+  <style>
+    /* General body styling */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(to bottom, #ffd2d0, #df82bf);
+    }
+
+    /* Button styling */
+    button {
+      background: white;
+      color: hotpink;
+      border: 2px solid black;
+      border-radius: 20px;
+      padding: 15px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      background: #ffe6f0;
+    }
+
+    /* Output section */
+    .output {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.6;
+      width: 80%;
+      max-width: 600px;
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      border: 2px solid black;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Output text styling */
+    .output p {
+      margin: 10px 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: hotpink;
+    }
+        /* Timer button styling */
+        .timer-button {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #a65a80;
+      padding: 10px 20px;
+      background: #fff;
+      border: 2px solid black;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .timer-button:hover {
+      background: #f0f8ff;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="generateRandom()">Roll</button>
+  <div class="output" id="output"></div>
+  <button class="timer-button hidden" id="timer-button" onclick="startTimer()"></button>
+
+  <script>
+    const categories = {
+            "Category 1": ["In a manner of your choice", "Slowly", "Quickly", "Softly", "Roughly", "Intimately"],
+            "Category 2": ["Perform an action of your choice to", "Kiss", "Lick", "Massage", "Suck"],
+            "Category 3": ["An area to the body of your choice", "Legs", "Feet", "Hips & Waist", "Back", "Chest", "Genitals", "Neck", "Arms"],
+            "Category 4": ["For as long as you like", "For 15 Seconds", "For 30 seconds", "For 40 seconds", "For 50 seconds", "For 1 minute", "For 90 seconds", "For 2 minutes"]
+        };
+
+        let timerInterval; // To store the timer interval
+    let countdownTime; // To store the countdown time in seconds
+
+    function generateRandom() {
+      const outputDiv = document.getElementById("output");
+      const timerButton = document.getElementById("timer-button");
+
+      outputDiv.innerHTML = ""; // Clear previous content
+      clearInterval(timerInterval); // Clear any previous timer
+      timerInterval = null; // Reset the timer interval reference
+      timerButton.textContent = ""; // Clear timer display
+      timerButton.classList.add("hidden"); // Hide the timer button initially
+
+      // Randomly select and display one value from each category
+      Object.values(categories).forEach((values, index) => {
+        const item = values[Math.floor(Math.random() * values.length)];
+        const itemElement = document.createElement("p");
+        itemElement.textContent = item;
+        outputDiv.appendChild(itemElement);
+
+        // Set countdown time for the timer
+        if (index === 3) {
+          countdownTime = parseTimeToSeconds(item);
+          if (countdownTime > 0) {
+            timerButton.textContent = `Start Timer: ${item}`;
+            timerButton.classList.remove("hidden");
+          }
+        }
+      });
+    }
+
+    function parseTimeToSeconds(timeString) {
+      const match = timeString.match(/(\d+)\s*(seconds|minute|minutes)/i);
+      if (!match) return 0;
+
+      const value = parseInt(match[1]);
+      if (timeString.includes("minute")) return value * 60;
+      return value;
+    }
+
+    function startTimer() {
+      const timerButton = document.getElementById("timer-button");
+
+      if (timerInterval) return; // Prevent restarting the timer
+
+      function updateTimer() {
+        const minutes = Math.floor(countdownTime / 60);
+        const seconds = countdownTime % 60;
+        timerButton.textContent = `Time Remaining: ${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+        countdownTime--;
+
+        if (countdownTime < 0) {
+          clearInterval(timerInterval);
+          playSound();
+          timerButton.textContent = "Time's up!";
+        }
+      }
+
+      updateTimer(); // Display the initial time
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function playSound() {
+      const audio = new Audio("timer.mp3");
+      audio.play();
+    }
+  </script>
+</body>
+</html>
