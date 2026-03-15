@@ -1,164 +1,879 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌶️ Spicy Dice</title>
+  <title>🎲 Action Dice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    /* General body styling */
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(to bottom, #ffd2d0, #df82bf);
+    :root {
+      --deep: #0e0a1a;
+      --card: #1a1430;
+      --accent: #4a65ff;
+      --gold: #f5c842;
+      --lavender: #c9aaff;
+      --mist: #f0eaff;
+      --glow: rgba(232, 52, 90, 0.35);
     }
 
-    /* Button styling */
-    button {
-      background: white;
-      color: hotpink;
-      border: 2px solid black;
-      border-radius: 20px;
-      padding: 15px 30px;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    }
 
-    button:active {
-      background: #ffe6f0;
-    }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Output section */
-    .output {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 18px;
-      line-height: 1.6;
-      width: 80%;
-      max-width: 600px;
-      background: white;
-      padding: 20px;
-      border-radius: 20px;
-      border: 2px solid black;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  background: var(--deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-x: hidden;
+  transition: background 0.6s ease;
+}
 
-    /* Output text styling */
-    .output p {
-      margin: 10px 0;
-      font-size: 18px;
-      font-weight: bold;
-      color: hotpink;
-    }
-        /* Timer button styling */
-        .timer-button {
-      margin-top: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #a65a80;
-      padding: 10px 20px;
-      background: #fff;
-      border: 2px solid black;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+body.spicy-mode {
+  --accent: #ff3593;
+  --glow: rgba(255, 53, 164, 0.4);
+  --lavender: #ffa0ff;
+  --deep: #120a06;
+  --card: #1e0f0a;
+}
 
-    .timer-button:hover {
-      background: #f0f8ff;
-    }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(201, 170, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(232, 52, 90, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(245, 200, 66, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
 
-    .hidden {
-      display: none;
-    }
+body.spicy-mode::before {
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(255, 53, 137, 0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(255, 40, 94, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(245, 30, 112, 0.06) 0%, transparent 70%);
+}
+
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--d, 4s) ease-in-out infinite;
+  opacity: var(--o, 0.4);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: var(--o, 0.4); transform: scale(1); }
+  50% { opacity: 0.1; transform: scale(0.5); }
+}
+
+.wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.header { text-align: center; }
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 8vw, 3.4rem);
+  font-weight: 700;
+  color: var(--mist);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  transition: color 0.4s;
+}
+
+.title span {
+  color: var(--accent);
+  font-style: italic;
+  transition: color 0.4s;
+}
+
+.subtitle {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--lavender);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 300;
+  opacity: 0.7;
+  transition: color 0.4s;
+}
+
+/* ── TOGGLE PILLS ── */
+.toggles-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.toggle-pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--card);
+  border: 1px solid rgba(201, 170, 255, 0.14);
+  border-radius: 100px;
+  padding: 8px 14px 8px 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+}
+
+.toggle-pill:hover { border-color: rgba(201, 170, 255, 0.3); }
+
+.toggle-pill.active-spicy {
+  border-color: rgba(255, 107, 53, 0.55);
+  background: rgba(255, 107, 53, 0.09);
+  box-shadow: 0 0 18px rgba(255, 107, 53, 0.18);
+}
+
+.toggle-pill.active-random {
+  border-color: rgba(245, 200, 66, 0.5);
+  background: rgba(245, 200, 66, 0.07);
+  box-shadow: 0 0 16px rgba(245, 200, 66, 0.12);
+}
+
+.toggle-track {
+  width: 34px;
+  height: 18px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.12);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.25s, border-color 0.25s;
+}
+
+.toggle-pill.active-spicy .toggle-track {
+  background: rgba(255, 107, 53, 0.65);
+  border-color: rgba(255, 107, 53, 0.4);
+}
+
+.toggle-pill.active-random .toggle-track {
+  background: rgba(245, 200, 66, 0.65);
+  border-color: rgba(245, 200, 66, 0.4);
+}
+
+.toggle-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: left 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.toggle-pill.active-spicy .toggle-thumb,
+.toggle-pill.active-random .toggle-thumb { left: 18px; }
+
+.toggle-label {
+  font-size: 0.8rem;
+  color: var(--lavender);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  transition: color 0.25s;
+}
+
+.toggle-pill.active-spicy .toggle-label { color: #ffb8a0; }
+.toggle-pill.active-random .toggle-label { color: var(--gold); }
+
+/* ── SETUP ── */
+#setup-screen {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: fadeUp 0.5s ease both;
+}
+
+.player-inputs { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+
+.player-input-group { display: flex; flex-direction: column; gap: 6px; }
+
+.player-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--lavender);
+  font-weight: 500;
+  padding-left: 2px;
+  transition: color 0.4s;
+}
+
+.player-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid rgba(201, 170, 255, 0.18);
+  border-radius: 14px;
+  padding: 4px 4px 4px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s;
+}
+
+.player-input-row:focus-within {
+  border-color: rgba(232, 52, 90, 0.6);
+  box-shadow: 0 0 0 3px rgba(232, 52, 90, 0.1);
+}
+
+.player-emoji { font-size: 1.4rem; flex-shrink: 0; }
+
+.player-input-row input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  color: var(--mist);
+  padding: 10px 0;
+}
+
+.player-input-row input::placeholder { color: rgba(240, 234, 255, 0.25); }
+
+.start-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 24px var(--glow);
+  letter-spacing: 0.02em;
+}
+
+.start-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px var(--glow);
+}
+
+.start-btn:active { transform: translateY(0); }
+
+/* ── GAME ── */
+#game-screen {
+  width: 100%;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  animation: fadeUp 0.5s ease both;
+}
+
+.player-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1px solid rgba(201, 170, 255, 0.15);
+  border-radius: 100px;
+  padding: 7px 14px 7px 10px;
+  font-size: 0.82rem;
+  color: var(--lavender);
+  transition: background 0.4s, border-color 0.4s, color 0.4s;
+}
+
+.badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+.badge:first-child .dot { background: var(--accent); transition: background 0.4s; }
+.badge:last-child .dot { background: var(--gold); }
+
+.vs-divider {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  color: rgba(240, 234, 255, 0.3);
+  font-size: 0.85rem;
+}
+
+/* Roll button */
+.roll-btn {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #3a2060, #1a1430);
+  border: 2px solid rgba(232, 52, 90, 0.4);
+  cursor: pointer;
+  transition: transform 0.3s ease, border-color 0.4s, box-shadow 0.4s, background 0.6s;
+  box-shadow:
+    0 0 0 8px rgba(232, 52, 90, 0.07),
+    0 12px 40px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+body.spicy-mode .roll-btn {
+  background: radial-gradient(circle at 35% 35%, #3d1505, #1e0f0a);
+  border-color: rgba(255, 107, 53, 0.4);
+  box-shadow:
+    0 0 0 8px rgba(255, 107, 53, 0.07),
+    0 12px 40px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.roll-btn:hover {
+  border-color: var(--accent) !important;
+  box-shadow:
+    0 0 0 14px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 16px 50px var(--glow),
+    inset 0 1px 0 rgba(255,255,255,0.1) !important;
+  transform: scale(1.05);
+}
+
+.roll-btn:active { transform: scale(0.97); }
+.roll-btn.rolling { animation: shake 0.5s ease; }
+
+@keyframes shake {
+  0%,100% { transform: rotate(0deg) scale(1); }
+  15% { transform: rotate(-8deg) scale(1.05); }
+  30% { transform: rotate(8deg) scale(1.05); }
+  45% { transform: rotate(-5deg) scale(1.02); }
+  60% { transform: rotate(5deg) scale(1.02); }
+  75% { transform: rotate(-2deg) scale(1.01); }
+}
+
+.dice-icon {
+  font-size: 2.4rem;
+  filter: drop-shadow(0 0 8px rgba(245, 200, 66, 0.5));
+  transition: filter 0.4s;
+}
+
+body.spicy-mode .dice-icon {
+  filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.7));
+}
+
+.roll-label {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: rgba(240, 234, 255, 0.5);
+}
+
+/* Output card */
+.output-card {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid rgba(201, 170, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  display: none;
+  transition: border-color 0.4s, background 0.4s;
+}
+
+body.spicy-mode .output-card { border-color: rgba(255, 107, 53, 0.15); }
+
+.output-card.visible {
+  display: block;
+  animation: cardReveal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.card-header {
+  background: linear-gradient(135deg, rgba(232, 52, 90, 0.15), rgba(201, 170, 255, 0.08));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.4s;
+}
+
+body.spicy-mode .card-header {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.18), rgba(255, 60, 30, 0.08));
+}
+
+.card-header-left { display: flex; align-items: center; gap: 10px; }
+
+.card-header-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--lavender);
+  font-weight: 500;
+  opacity: 0.8;
+  transition: color 0.4s;
+}
+
+.card-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  transition: background 0.4s, box-shadow 0.4s;
+}
+
+.spicy-badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ff9060;
+  background: rgba(255, 107, 53, 0.14);
+  border: 1px solid rgba(255, 107, 53, 0.35);
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-weight: 500;
+  display: none;
+}
+
+body.spicy-mode .spicy-badge { display: inline-block; }
+
+.prompt-text {
+  padding: 20px 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actor-line {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--lavender);
+  font-weight: 500;
+  opacity: 0.65;
+  margin-bottom: 4px;
+  transition: color 0.4s;
+}
+
+.actor-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--mist);
+  line-height: 1.1;
+}
+
+.action-parts { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
+
+.action-part {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  animation: partSlide 0.3s ease both;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+body.spicy-mode .action-part {
+  background: rgba(255, 107, 53, 0.04);
+  border-color: rgba(255, 107, 53, 0.09);
+}
+
+.action-part:nth-child(1) { animation-delay: 0.05s; }
+.action-part:nth-child(2) { animation-delay: 0.12s; }
+.action-part:nth-child(3) { animation-delay: 0.19s; }
+.action-part:nth-child(4) { animation-delay: 0.26s; }
+
+@keyframes partSlide {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.part-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; opacity: 0.8; }
+
+.part-text { font-size: 0.95rem; color: var(--mist); font-weight: 400; line-height: 1.4; }
+.part-text strong { color: var(--gold); font-weight: 500; }
+
+/* Timer */
+.timer-section { padding: 0 20px 20px; display: none; }
+.timer-section.visible { display: block; }
+
+.timer-btn {
+  width: 100%;
+  padding: 13px;
+  background: rgba(232, 52, 90, 0.12);
+  border: 1px solid rgba(232, 52, 90, 0.3);
+  border-radius: 12px;
+  color: var(--mist);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  letter-spacing: 0.02em;
+}
+
+body.spicy-mode .timer-btn {
+  background: rgba(255, 107, 53, 0.1);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.timer-btn:hover { filter: brightness(1.15); }
+
+.timer-btn.running {
+  border-color: var(--accent);
+  color: var(--gold);
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.timer-btn.done {
+  background: rgba(245, 200, 66, 0.12);
+  border-color: rgba(245, 200, 66, 0.4);
+  color: var(--gold);
+}
+
+.change-players {
+  font-size: 0.75rem;
+  color: rgba(201, 170, 255, 0.4);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.2s;
+  border: none;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.change-players:hover { color: var(--lavender); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  48% { opacity: 1; }
+  50% { opacity: 0.82; }
+  52% { opacity: 1; }
+  72% { opacity: 1; }
+  74% { opacity: 0.88; }
+  76% { opacity: 1; }
+}
+
   </style>
 </head>
 <body>
-  <button onclick="generateRandom()">Roll</button>
-  <div class="output" id="output"></div>
-  <button class="timer-button hidden" id="timer-button" onclick="startTimer()"></button>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="wrapper">
+    <div class="header">
+      <h1 class="title">Action <span>Dice</span></h1>
+      <p class="subtitle">A game for two</p>
+    </div>
+
+<!-- Toggles — always visible -->
+<div class="toggles-row">
+  <div class="toggle-pill" id="spicy-toggle" onclick="toggleSpicy()">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label">🌶️ Spicy Mode</span>
+  </div>
+  <div class="toggle-pill" id="random-toggle" onclick="toggleRandom()">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label">🎲 Random Order</span>
+  </div>
+</div>
+
+<!-- Setup Screen -->
+<div id="setup-screen">
+  <div class="player-inputs">
+    <div class="player-input-group">
+      <div class="player-label">Player One</div>
+      <div class="player-input-row">
+        <span class="player-emoji">🌹</span>
+        <input type="text" id="player1-input" placeholder="Enter name…" maxlength="20" />
+      </div>
+    </div>
+    <div class="player-input-group">
+      <div class="player-label">Player Two</div>
+      <div class="player-input-row">
+        <span class="player-emoji">✨</span>
+        <input type="text" id="player2-input" placeholder="Enter name…" maxlength="20" />
+      </div>
+    </div>
+  </div>
+  <button class="start-btn" onclick="startGame()">Begin the Game</button>
+</div>
+
+<!-- Game Screen -->
+<div id="game-screen">
+  <div class="player-badges">
+    <div class="badge"><span class="dot"></span><span id="badge1">Player 1</span></div>
+    <span class="vs-divider">vs</span>
+    <div class="badge"><span class="dot"></span><span id="badge2">Player 2</span></div>
+  </div>
+
+  <button class="roll-btn" id="roll-btn" onclick="generateRandom()">
+    <span class="dice-icon" id="dice-icon">🎲</span>
+    <span class="roll-label">roll</span>
+  </button>
+
+  <div class="output-card" id="output-card">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-pip"></div>
+        <span class="card-header-label">Your Prompt</span>
+      </div>
+      <span class="spicy-badge">🌶️ Spicy</span>
+    </div>
+    <div class="prompt-text">
+      <div class="actor-line">This round</div>
+      <div class="actor-name" id="actor-display"></div>
+      <div class="action-parts" id="action-parts"></div>
+    </div>
+    <div class="timer-section" id="timer-section">
+      <button class="timer-btn" id="timer-btn" onclick="startTimer()"></button>
+    </div>
+  </div>
+
+  <button class="change-players" onclick="resetToSetup()">Change players</button>
+</div>
+
+  </div>
 
   <script>
-    const categories = {
-            "Category 1": ["In a manner of your choice", "Slowly", "Quickly", "Softly", "Roughly", "Intimately"],
-            "Category 2": ["Perform an action of your choice to", "Kiss", "Lick", "Massage", "Suck"],
-            "Category 3": ["An area to the body of your choice", "Legs", "Feet", "Hips & Waist", "Back", "Chest", "Genitals", "Neck", "Arms"],
-            "Category 4": ["For as long as you like", "For 15 Seconds", "For 30 seconds", "For 40 seconds", "For 50 seconds", "For 1 minute", "For 90 seconds", "For 2 minutes"]
-        };
+    // ── Starfield ──
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 60; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top  = Math.random() * 100 + '%';
+      s.style.setProperty('--d', (3 + Math.random() * 5) + 's');
+      s.style.setProperty('--o', (0.2 + Math.random() * 0.6).toFixed(2));
+      s.style.animationDelay = (Math.random() * 5) + 's';
+      starsEl.appendChild(s);
+    }
 
-        let timerInterval; // To store the timer interval
-    let countdownTime; // To store the countdown time in seconds
+    // ── State ──
+    let players       = ['Player 1', 'Player 2'];
+    let lastActor     = -1;
+    let timerInterval = null;
+    let countdownTime = 0;
+    let spicyMode     = false;
+    let randomOrder   = false;
+
+    // ── Prompt banks ──
+    const normal = {
+      manner:   ["however you like", "slowly and deliberately", "quickly", "softly", "with a firm touch", "gently"],
+      action:   ["do something of your choice to", "blow gently at", "stare deeply into the eyes of", "do something unexpected to", "touch", "do something exciting to"],
+      area:     ["anywhere on the body", "the legs", "the hips and waist", "the back", "the chest", "the neck", "the arms"],
+      duration: ["for as long as you like", "for 15 seconds", "for 30 seconds", "for 40 seconds", "for 50 seconds", "for 1 minute", "for 90 seconds", "for 2 minutes"]
+    };
+
+    const spicy = {
+      manner:   ["as slowly as you can bear", "passionately", "teasingly", "softly at first, then harder", "as seductively as possible", "urgently", "in a manner of your choosing"],
+      action:   ["kiss", "lick", "intimately suck", "sensually massage", "trace your fingertips along", "nibble gently on", "run your lips slowly along", "perform an action of your choosing"],
+      area:     ["the lips", "the neck", "the chest", "the inner wrist", "the collarbone", "the ear", "the shoulder", "the lower back", "the inner thigh", "the hip/waist", "the genitals", "the body area of your choice"],
+      duration: ["for as long as you both can stand", "for as long as you want", "for 20 seconds", "for 30 seconds", "for 45 seconds", "for 1 minute", "for 90 seconds", "for 2 minutes", "until they ask you to stop"]
+    };
+
+    const normalIcons = { manner: "✦", action: "🎯", area: "📍", duration: "⏱" };
+    const spicyIcons  = { manner: "✦", action: "💋", area: "📍", duration: "⏱" };
+
+    // ── Toggle handlers ──
+    function toggleSpicy() {
+      spicyMode = !spicyMode;
+      document.getElementById('spicy-toggle').classList.toggle('active-spicy', spicyMode);
+      document.body.classList.toggle('spicy-mode', spicyMode);
+      document.getElementById('dice-icon').textContent = spicyMode ? '🌶️' : '🎲';
+    }
+
+    function toggleRandom() {
+      randomOrder = !randomOrder;
+      document.getElementById('random-toggle').classList.toggle('active-random', randomOrder);
+      lastActor = -1; // reset so first roll after toggling feels fresh
+    }
+
+    // ── Game setup ──
+    function startGame() {
+      const p1 = document.getElementById('player1-input').value.trim() || 'Player 1';
+      const p2 = document.getElementById('player2-input').value.trim() || 'Player 2';
+      players   = [p1, p2];
+      lastActor = -1;
+
+      document.getElementById('badge1').textContent = p1;
+      document.getElementById('badge2').textContent = p2;
+
+      document.getElementById('setup-screen').style.display = 'none';
+      const gs = document.getElementById('game-screen');
+      gs.style.display = 'flex';
+      gs.style.animation = 'none';
+      void gs.offsetWidth;
+      gs.style.animation = '';
+    }
+
+    function resetToSetup() {
+      document.getElementById('game-screen').style.display = 'none';
+      document.getElementById('setup-screen').style.display = 'flex';
+      document.getElementById('output-card').classList.remove('visible');
+      clearInterval(timerInterval);
+      timerInterval = null;
+      lastActor = -1;
+    }
+
+    // ── Roll logic ──
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function chooseActor() {
+      if (randomOrder) {
+        // Fully random — the same player can be picked back-to-back indefinitely
+        return Math.round(Math.random());
+      }
+      // Strict alternation
+      if (lastActor === -1) return Math.round(Math.random());
+      return 1 - lastActor;
+    }
 
     function generateRandom() {
-      const outputDiv = document.getElementById("output");
-      const timerButton = document.getElementById("timer-button");
+      const btn = document.getElementById('roll-btn');
+      btn.classList.add('rolling');
+      setTimeout(() => btn.classList.remove('rolling'), 500);
 
-      outputDiv.innerHTML = ""; // Clear previous content
-      clearInterval(timerInterval); // Clear any previous timer
-      timerInterval = null; // Reset the timer interval reference
-      timerButton.textContent = ""; // Clear timer display
-      timerButton.classList.add("hidden"); // Hide the timer button initially
+      clearInterval(timerInterval);
+      timerInterval = null;
 
-      // Randomly select and display one value from each category
-      Object.values(categories).forEach((values, index) => {
-        const item = values[Math.floor(Math.random() * values.length)];
-        const itemElement = document.createElement("p");
-        itemElement.textContent = item;
-        outputDiv.appendChild(itemElement);
+      const actorIdx = chooseActor();
+      lastActor = actorIdx;
+      const actor  = players[actorIdx];
+      const target = players[1 - actorIdx];
 
-        // Set countdown time for the timer
-        if (index === 3) {
-          countdownTime = parseTimeToSeconds(item);
-          if (countdownTime > 0) {
-            timerButton.textContent = `Start Timer: ${item}`;
-            timerButton.classList.remove("hidden");
-          }
-        }
+      const bank  = spicyMode ? spicy  : normal;
+      const icons = spicyMode ? spicyIcons : normalIcons;
+
+      const manner   = pick(bank.manner);
+      const action   = pick(bank.action);
+      const area     = pick(bank.area);
+      const duration = pick(bank.duration);
+
+      document.getElementById('actor-display').textContent = actor;
+
+      const partsEl = document.getElementById('action-parts');
+      partsEl.innerHTML = '';
+
+      const lines = [
+        { icon: icons.action,   text: `${cap(action)} <strong>${target}</strong>` },
+        { icon: icons.area,     text: `On <strong>${area}</strong>` },
+        { icon: icons.manner,   text: `Do it <strong>${manner}</strong>` },
+        { icon: icons.duration, text: `<strong>${cap(duration)}</strong>` }
+      ];
+
+      lines.forEach(l => {
+        const d = document.createElement('div');
+        d.className = 'action-part';
+        d.innerHTML = `<span class="part-icon">${l.icon}</span><span class="part-text">${l.text}</span>`;
+        partsEl.appendChild(d);
       });
+
+      // Timer
+      const timerSec = document.getElementById('timer-section');
+      const timerBtn = document.getElementById('timer-btn');
+      countdownTime = parseTimeToSeconds(duration);
+
+      if (countdownTime > 0) {
+        timerSec.classList.add('visible');
+        timerBtn.className = 'timer-btn';
+        timerBtn.textContent = `▶ Start timer — ${duration}`;
+      } else {
+        timerSec.classList.remove('visible');
+      }
+
+      const card = document.getElementById('output-card');
+      card.classList.remove('visible');
+      void card.offsetWidth;
+      card.classList.add('visible');
     }
 
-    function parseTimeToSeconds(timeString) {
-      const match = timeString.match(/(\d+)\s*(seconds|minute|minutes)/i);
-      if (!match) return 0;
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-      const value = parseInt(match[1]);
-      if (timeString.includes("minute")) return value * 60;
-      return value;
+    function parseTimeToSeconds(str) {
+      const m = str.match(/(\d+)\s*(seconds?|minutes?)/i);
+      if (!m) return 0;
+      return str.includes('minute') ? parseInt(m[1]) * 60 : parseInt(m[1]);
     }
 
+    // ── Timer ──
     function startTimer() {
-      const timerButton = document.getElementById("timer-button");
+      if (timerInterval) return;
+      const timerBtn = document.getElementById('timer-btn');
+      timerBtn.classList.add('running');
 
-      if (timerInterval) return; // Prevent restarting the timer
-
-      function updateTimer() {
-        const minutes = Math.floor(countdownTime / 60);
-        const seconds = countdownTime % 60;
-        timerButton.textContent = `Time Remaining: ${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
-        countdownTime--;
-
-        if (countdownTime < 0) {
+      function tick() {
+        const mins = Math.floor(countdownTime / 60);
+        const secs = countdownTime % 60;
+        timerBtn.textContent = `${mins}:${secs < 10 ? '0' + secs : secs} remaining`;
+        if (--countdownTime < 0) {
           clearInterval(timerInterval);
-          playSound();
-          timerButton.textContent = "Time's up!";
+          timerInterval = null;
+          timerBtn.className = 'timer-btn done';
+          timerBtn.textContent = "✦ Time's up!";
         }
       }
 
-      updateTimer(); // Display the initial time
-      timerInterval = setInterval(updateTimer, 1000);
+      tick();
+      timerInterval = setInterval(tick, 1000);
     }
 
-    function playSound() {
-      const audio = new Audio("timer.mp3");
-      audio.play();
-    }
+    // Enter to start game
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const setup = document.getElementById('setup-screen');
+        if (getComputedStyle(setup).display !== 'none') startGame();
+      }
+    });
   </script>
+
 </body>
 </html>
