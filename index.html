@@ -10,14 +10,14 @@
     :root {
       --deep: #0e0a1a;
       --card: #1a1430;
-      --accent: #e8345a;
+      --accent: #4a65ff;
       --gold: #f5c842;
       --lavender: #c9aaff;
       --mist: #f0eaff;
       --glow: rgba(232, 52, 90, 0.35);
     }
 
-```
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -34,9 +34,9 @@ body {
 }
 
 body.spicy-mode {
-  --accent: #ff6b35;
-  --glow: rgba(255, 107, 53, 0.4);
-  --lavender: #ffb8a0;
+  --accent: #ff3593;
+  --glow: rgba(255, 53, 164, 0.4);
+  --lavender: #ffa0ff;
   --deep: #120a06;
   --card: #1e0f0a;
 }
@@ -56,9 +56,9 @@ body::before {
 
 body.spicy-mode::before {
   background:
-    radial-gradient(ellipse at 20% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 80%, rgba(255, 60, 40, 0.1) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgba(245, 150, 30, 0.06) 0%, transparent 70%);
+    radial-gradient(ellipse at 20% 20%, rgba(255, 53, 137, 0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(255, 40, 94, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(245, 30, 112, 0.06) 0%, transparent 70%);
 }
 
 .stars {
@@ -601,7 +601,6 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
   74% { opacity: 0.88; }
   76% { opacity: 1; }
 }
-```
 
   </style>
 </head>
@@ -615,7 +614,6 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
       <p class="subtitle">A game for two</p>
     </div>
 
-```
 <!-- Toggles — always visible -->
 <div class="toggles-row">
   <div class="toggle-pill" id="spicy-toggle" onclick="toggleSpicy()">
@@ -682,7 +680,6 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
 
   <button class="change-players" onclick="resetToSetup()">Change players</button>
 </div>
-```
 
   </div>
 
@@ -717,10 +714,10 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
     };
 
     const spicy = {
-      manner:   ["as slowly as you can bear", "passionately", "teasingly", "with total confidence", "softly at first, then harder", "as seductively as possible", "urgently"],
-      action:   ["kiss", "sensually massage", "trace your fingertips along", "breathe warm air on", "whisper something seductive into the ear of", "nibble gently on", "run your lips slowly along"],
-      area:     ["the lips", "the neck", "the inner wrist", "the collarbone", "the ear", "the shoulder", "the lower back", "the inner thigh"],
-      duration: ["for as long as you both can stand", "for 20 seconds", "for 30 seconds", "for 45 seconds", "for 1 minute", "for 90 seconds", "for 2 minutes", "until they ask you to stop"]
+      manner:   ["as slowly as you can bear", "passionately", "teasingly", "softly at first, then harder", "as seductively as possible", "urgently", "in a manner of your choosing"],
+      action:   ["kiss", "lick", "intimately suck", "sensually massage", "trace your fingertips along", "nibble gently on", "run your lips slowly along", "perform an action of your choosing"],
+      area:     ["the lips", "the neck", "the chest", "the inner wrist", "the collarbone", "the ear", "the shoulder", "the lower back", "the inner thigh", "the hip/waist", "the genitals", "the body area of your choice"],
+      duration: ["for as long as you both can stand", "for as long as you want", "for 20 seconds", "for 30 seconds", "for 45 seconds", "for 1 minute", "for 90 seconds", "for 2 minutes", "until they ask you to stop"]
     };
 
     const normalIcons = { manner: "✦", action: "🎯", area: "📍", duration: "⏱" };
