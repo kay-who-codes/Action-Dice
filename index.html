@@ -510,6 +510,17 @@ body.spicy-mode .spicy-badge { display: inline-block; }
   transition: background 0.4s, border-color 0.4s;
 }
 
+  .action-part:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  .action-part:active {
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,255,255,0.15);
+    scale: 0.98;
+  }
+
 body.spicy-mode .action-part {
   background: rgba(255, 107, 53, 0.04);
   border-color: rgba(255, 107, 53, 0.09);
@@ -704,12 +715,13 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
     let countdownTime = 0;
     let spicyMode     = false;
     let randomOrder   = false;
+    let currentTarget = '';  // track target for reroll action text
 
     // ── Prompt banks ──
     const normal = {
       manner:   ["however you like", "slowly and deliberately", "quickly", "softly", "with a firm touch", "gently"],
-      action:   ["do something of your choice to", "blow gently at", "stare deeply into the eyes of", "do something unexpected to", "touch", "do something exciting to"],
-      area:     ["anywhere on the body", "the legs", "the hips and waist", "the back", "the chest", "the neck", "the arms"],
+      action:   ["do something of your choice to", "blow gently at", "do something unexpected to", "touch", "do something exciting to"],
+      area:     ["anywhere on the body", "the hips and waist", "the back", "the arms"],
       duration: ["for as long as you like", "for 15 seconds", "for 30 seconds", "for 40 seconds", "for 50 seconds", "for 1 minute", "for 90 seconds", "for 2 minutes"]
     };
 
@@ -767,14 +779,75 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
     // ── Roll logic ──
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+    function pickDifferent(arr, current) {
+      if (arr.length <= 1) return arr[0];
+      let next;
+      do { next = pick(arr); } while (next === current);
+      return next;
+    }
+
     function chooseActor() {
       if (randomOrder) {
-        // Fully random — the same player can be picked back-to-back indefinitely
         return Math.round(Math.random());
       }
-      // Strict alternation
       if (lastActor === -1) return Math.round(Math.random());
       return 1 - lastActor;
+    }
+
+    // ── Build a single action-part element ──
+    function buildPartEl(key, text, icon) {
+      const d = document.createElement('div');
+      d.className = 'action-part rerollable';
+      d.dataset.key = key;
+      d.dataset.currentText = text; // store raw text for dedup
+
+      d.innerHTML = `<span class="part-icon">${icon}</span><span class="part-text">${formatPartText(key, text)}</span><span class="reroll-hint">↺</span>`;
+
+      d.addEventListener('click', () => rerollPart(d));
+      return d;
+    }
+
+    function formatPartText(key, text) {
+      if (key === 'action') return `${cap(text)} <strong>${currentTarget}</strong>`;
+      if (key === 'area')   return `On <strong>${text}</strong>`;
+      if (key === 'manner') return `Do it <strong>${text}</strong>`;
+      if (key === 'duration') return `<strong>${cap(text)}</strong>`;
+      return text;
+    }
+
+    // ── Reroll a single part in-place ──
+    function rerollPart(el) {
+      const key   = el.dataset.key;
+      const bank  = spicyMode ? spicy : normal;
+      const icons = spicyMode ? spicyIcons : normalIcons;
+
+      const newText = pickDifferent(bank[key], el.dataset.currentText);
+      el.dataset.currentText = newText;
+
+      // Swap animation
+      el.classList.add('rerolling');
+      setTimeout(() => {
+        el.querySelector('.part-text').innerHTML = formatPartText(key, newText);
+        el.classList.remove('rerolling');
+        el.classList.add('rerolled');
+        setTimeout(() => el.classList.remove('rerolled'), 400);
+      }, 180);
+
+      // If duration changed, update timer
+      if (key === 'duration') {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        const timerSec = document.getElementById('timer-section');
+        const timerBtn = document.getElementById('timer-btn');
+        countdownTime = parseTimeToSeconds(newText);
+        if (countdownTime > 0) {
+          timerSec.classList.add('visible');
+          timerBtn.className = 'timer-btn';
+          timerBtn.textContent = `▶ Start timer — ${newText}`;
+        } else {
+          timerSec.classList.remove('visible');
+        }
+      }
     }
 
     function generateRandom() {
@@ -789,6 +862,7 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
       lastActor = actorIdx;
       const actor  = players[actorIdx];
       const target = players[1 - actorIdx];
+      currentTarget = target;  // store for reroll use
 
       const bank  = spicyMode ? spicy  : normal;
       const icons = spicyMode ? spicyIcons : normalIcons;
@@ -804,18 +878,13 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
       partsEl.innerHTML = '';
 
       const lines = [
-        { icon: icons.action,   text: `${cap(action)} <strong>${target}</strong>` },
-        { icon: icons.area,     text: `On <strong>${area}</strong>` },
-        { icon: icons.manner,   text: `Do it <strong>${manner}</strong>` },
-        { icon: icons.duration, text: `<strong>${cap(duration)}</strong>` }
+        { key: 'action',   icon: icons.action,   text: action   },
+        { key: 'area',     icon: icons.area,     text: area     },
+        { key: 'manner',   icon: icons.manner,   text: manner   },
+        { key: 'duration', icon: icons.duration, text: duration }
       ];
 
-      lines.forEach(l => {
-        const d = document.createElement('div');
-        d.className = 'action-part';
-        d.innerHTML = `<span class="part-icon">${l.icon}</span><span class="part-text">${l.text}</span>`;
-        partsEl.appendChild(d);
-      });
+      lines.forEach(l => partsEl.appendChild(buildPartEl(l.key, l.text, l.icon)));
 
       // Timer
       const timerSec = document.getElementById('timer-section');
@@ -874,6 +943,62 @@ body.spicy-mode .title span { animation: flicker 3s ease-in-out infinite; }
       }
     });
   </script>
+
+  <style>
+    /* ── Rerollable part styles ── */
+    .action-part.rerollable {
+      cursor: pointer;
+      position: relative;
+      transition: opacity 0.15s, transform 0.15s;
+      border-radius: 6px;
+      padding-right: 1.6em;  /* room for hint icon */
+    }
+
+    .action-part.rerollable:hover {
+      opacity: 0.75;
+      transform: translateX(2px);
+    }
+
+    .action-part.rerollable:active {
+      transform: scale(0.97);
+    }
+
+    /* The ↺ hint icon — visible on hover */
+    .reroll-hint {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85em;
+      opacity: 0;
+      transition: opacity 0.15s;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    .action-part.rerollable:hover .reroll-hint {
+      opacity: 0.5;
+    }
+
+    /* Swap-out animation */
+    @keyframes partSwapOut {
+      from { opacity: 1; transform: translateX(0);    }
+      to   { opacity: 0; transform: translateX(-8px); }
+    }
+
+    @keyframes partSwapIn {
+      from { opacity: 0; transform: translateX(8px); }
+      to   { opacity: 1; transform: translateX(0);   }
+    }
+
+    .action-part.rerolling .part-text {
+      animation: partSwapOut 0.18s ease forwards;
+    }
+
+    .action-part.rerolled .part-text {
+      animation: partSwapIn 0.22s ease forwards;
+    }
+  </style>
 
 </body>
 </html>
